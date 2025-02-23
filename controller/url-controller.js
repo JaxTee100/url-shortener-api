@@ -1,34 +1,45 @@
 const Url = require('../model/Url');
-const shortid = require('nanoid');
 
 //create short url
 const createShortUrl = async (req, res) => {
-    const { originalUrl } = req.body;
-    if (!originalUrl) {
-        return res.status(400).json({ error: 'Original URL is required' });
+    try {
+        const { nanoid } = await import('nanoid');
+        const { originalUrl } = req.body;
+        if (!originalUrl) {
+            return res.status(400).json({ error: 'Original URL is required' });
+        }
+    
+        const shortUrl = nanoid(8);
+        console.log("shortUrl", shortUrl);
+        const newUrl = new Url({ originalUrl, shortUrl });
+    
+        await newUrl.save();
+        res.json({ shortUrl });
+    } catch (error) {
+        res.status(500).json({ error: `Internal server error ${error.message}` });
     }
-
-    const shortUrl = shortid.generate();
-    console.log("shortUrl", shortUrl);
-    const newUrl = new Url({ originalUrl, shortUrl });
-
-    await newUrl.save();
-    res.json({ shortUrl });
+   
 };
 
 
 //get original url
 const getOriginalUrl = async (req, res) => {
-    const { shortUrl } = req.params;
-    const urlEntry = await Url.findOne({ shortUrl });
-
-    if (!urlEntry) {
-        return res.status(404).json({ error: "URL not found" });
+    try {
+        const { shortUrl } = req.params;
+        const urlEntry = await Url.findOne({ shortUrl });
+    
+        if (!urlEntry) {
+            return res.status(404).json({ error: "URL not found" });
+        }
+    
+        urlEntry.clicks += 1;
+        await urlEntry.save();
+        res.status(200).json({ originalUrl: urlEntry.originalUrl, shortUrl: urlEntry.shortUrl, clicks: urlEntry.clicks });
+    } catch (error) {
+        res.status(500).json({ error: `Internal server error ${error.message}` });
+        
     }
-
-    urlEntry.clicks += 1;
-    await urlEntry.save();
-    res.redirect(urlEntry.originalUrl);
+   
 };
 
 //get statistics
@@ -73,6 +84,28 @@ const deleteShortUrl = async (req, res) => {
 
     res.status(200).json({ message: "URL deleted" });
 }
+
+//redirect url
+const redirectShortUrl = async (req, res) => {
+    try {
+        const { shortUrl } = req.params;
+
+        const urlEntry = await Url.findOne({ shortUrl });
+
+        if (!urlEntry) {
+            return res.status(404).json({ error: 'Short URL not found' });
+        }
+
+        res.redirect(urlEntry.originalUrl); // Redirects to the original URL
+    } catch (error) {
+        res.status(500).json({ error: `Internal server error: ${error.message}` });
+    }
+};
+
+
+
+
+
 module.exports = {
-    createShortUrl, getOriginalUrl, getStats, updateOriginalUrl, deleteShortUrl
+    createShortUrl, getOriginalUrl, getStats, updateOriginalUrl, deleteShortUrl, redirectShortUrl
 };

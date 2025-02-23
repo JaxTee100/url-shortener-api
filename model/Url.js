@@ -9,3 +9,5 @@ const UrlSchema = new mongoose.Schema({
 });
 
 const Url = mongoose.model("Url", UrlSchema);
+
+module.exports = Url;
