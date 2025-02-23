@@ -2,7 +2,7 @@ const express = require('express');
 
 const router = express.Router();
 
-const { createShortUrl, getOriginalUrl, updateOriginalUrl, deleteShortUrl, redirectShortUrl } = require('../controller/url-controller');
+const { createShortUrl, getOriginalUrl, updateOriginalUrl, deleteShortUrl, redirectShortUrl, getStats } = require('../controller/url-controller');
 
 
 // Create a short URL
@@ -12,7 +12,7 @@ router.post('/shorten', createShortUrl);
 router.get('/:shortUrl', getOriginalUrl);
 
 // Get statistics
-router.get('/stats/:shortUrl', );
+router.get('/stats/:shortUrl', getStats);
 
 // Update the original URL
 router.put('/update/:shortUrl', updateOriginalUrl);

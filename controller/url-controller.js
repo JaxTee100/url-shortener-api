@@ -44,45 +44,62 @@ const getOriginalUrl = async (req, res) => {
 
 //get statistics
 const getStats =async (req, res) => {
-    const { shortUrl } = req.params;
-    const urlEntry = await Url.findOne({ shortUrl });
-
-    if (!urlEntry) {
-        return res.status(404).json({ error: "URL not found" });
+    try {
+        const { shortUrl } = req.params;
+        const urlEntry = await Url.findOne({ shortUrl });
+    
+        if (!urlEntry) {
+            return res.status(404).json({ error: "URL not found" });
+        }
+    
+        res.json({ originalUrl: urlEntry.originalUrl, clicks: urlEntry.clicks });
+    } catch (error) {
+        res.status(500).json({ error: `Internal server error ${error.message}` });
     }
-
-    res.json({ originalUrl: urlEntry.originalUrl, clicks: urlEntry.clicks });
+   
 };
 
 //update original url
 const updateOriginalUrl =async (req, res) => {
-    const { shortUrl } = req.params;
-    const { newUrl } = req.body;
+    try {
+        const { shortUrl } = req.params;
+        const { newUrl } = req.body;
 
-    const urlEntry = await Url.findOneAndUpdate(
-        { shortUrl },
-        { originalUrl: newUrl },
-        { new: true }
-    );
+        const urlEntry = await Url.findOneAndUpdate(
+            { shortUrl },
+            { originalUrl: newUrl },
+            { new: true }
+        );
 
-    if (!urlEntry) {
-        return res.status(404).json({ error: "URL not found" });
+        if (!urlEntry) {
+            return res.status(404).json({ error: "URL not found" });
+        }
+
+        res.json({ message: "URL updated", updatedUrl: urlEntry });
+    } catch (error) {
+        res.status(500).json({ error: `Internal server error ${error.message}` });
+        
     }
-
-    res.json({ message: "URL updated", updatedUrl: urlEntry });
+    
 };
 
 
 //delete short url
 const deleteShortUrl = async (req, res) => {
-    const { shortUrl } = req.params;
-    const deletedUrl = await Url.findOneAndDelete({ shortUrl });
+    try {
+        const { shortUrl } = req.params;
+        const deletedUrl = await Url.findOneAndDelete({ shortUrl });
 
-    if (!deletedUrl) {
-        return res.status(404).json({ error: "URL not found" });
+        if (!deletedUrl) {
+            return res.status(404).json({ error: "URL not found" });
+        }
+
+        res.status(200).json({ message: "URL deleted" });
+    } catch (error) {
+        res.status(500).json({ error: `Internal server error ${error.message}` });
+        
     }
-
-    res.status(200).json({ message: "URL deleted" });
+    
 }
 
 //redirect url
